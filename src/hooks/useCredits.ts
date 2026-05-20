@@ -6,7 +6,7 @@ import {
   computeROI,
   getPeriodKey,
 } from '@/lib/credits'
-import type { CardType, StoredState } from '@/types'
+import type { CardType, CreditUsageEntry, StoredState } from '@/types'
 import { BENEFITS } from '@/data/benefits'
 
 export function useCredits() {
@@ -63,6 +63,45 @@ export function useCredits() {
     [state, update, now]
   )
 
+  const setCardStartDate = useCallback(
+    (card: CardType, yearMonth: string) => {
+      update({
+        ...state,
+        cardStartDates: { ...state.cardStartDates, [card]: yearMonth },
+      })
+    },
+    [state, update]
+  )
+
+  const markUsedForPeriod = useCallback(
+    (_card: CardType, creditId: string, periodKey: string, used: boolean) => {
+      const entry: CreditUsageEntry = used ? { used: true, usedDate: now.toISOString() } : { used: false }
+      const next: StoredState = {
+        ...state,
+        creditStatus: {
+          ...state.creditStatus,
+          [periodKey]: { ...state.creditStatus[periodKey], [creditId]: entry },
+        },
+      }
+      update(next)
+    },
+    [state, update, now]
+  )
+
+  const markAllPeriods = useCallback(
+    (_card: CardType, creditId: string, periodKeys: string[], used: boolean) => {
+      const newPeriods: StoredState['creditStatus'] = {}
+      for (const key of periodKeys) {
+        newPeriods[key] = {
+          ...state.creditStatus[key],
+          [creditId]: used ? { used: true, usedDate: now.toISOString() } : { used: false },
+        }
+      }
+      update({ ...state, creditStatus: { ...state.creditStatus, ...newPeriods } })
+    },
+    [state, update, now]
+  )
+
   const setEnrolled = useCallback(
     (creditId: string, enrolled: boolean) => {
       update({ ...state, enrolled: { ...state.enrolled, [creditId]: enrolled } })
@@ -93,8 +132,11 @@ export function useCredits() {
     state,
     now,
     setCards,
+    setCardStartDate,
     markUsed,
     unmarkUsed,
+    markUsedForPeriod,
+    markAllPeriods,
     setEnrolled,
     getStatus,
     nudgeCredits,

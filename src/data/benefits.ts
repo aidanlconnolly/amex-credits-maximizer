@@ -94,6 +94,14 @@ export const BENEFITS: Record<CardType, CardBenefits> = {
         note: '$100 for Global Entry (includes TSA PreCheck) or $85 for TSA PreCheck alone. Renews every 4.5 years.',
       },
       {
+        id: 'resy_platinum',
+        label: 'Resy Credit',
+        amount: 100,
+        resetPeriod: 'quarterly',
+        category: 'dining',
+        note: 'Book via Resy at eligible restaurants. $400/year, $100 per quarter.',
+      },
+      {
         id: 'saks_h1',
         label: 'Saks Fifth Avenue (Jan–Jun)',
         amount: 50,

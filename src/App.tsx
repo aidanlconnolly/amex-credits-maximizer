@@ -7,6 +7,7 @@ import { CrossCardOptimizer } from '@/components/CrossCardOptimizer'
 import { PointsCalculator } from '@/components/PointsCalculator'
 import { cn } from '@/lib/utils'
 import type { CardType } from '@/types'
+import { BENEFITS } from '@/data/benefits'
 
 type Tab = 'credits' | 'guide' | 'points' | 'settings'
 
@@ -18,7 +19,18 @@ const TABS: { id: Tab; label: string }[] = [
 ]
 
 export default function App() {
-  const { state, now, setCards, markUsed, unmarkUsed, setEnrolled, roiSummary } = useCredits()
+  const {
+    state,
+    now,
+    setCards,
+    setCardStartDate,
+    markUsed,
+    unmarkUsed,
+    markUsedForPeriod,
+    markAllPeriods,
+    setEnrolled,
+    roiSummary,
+  } = useCredits()
   const [tab, setTab] = useState<Tab>('credits')
 
   if (!state.onboarded) {
@@ -84,6 +96,8 @@ export default function App() {
             now={now}
             onToggle={handleToggle}
             onEnroll={setEnrolled}
+            onTogglePeriod={markUsedForPeriod}
+            onMarkAllPeriods={markAllPeriods}
             roi={roiSummary}
           />
         )}
@@ -98,10 +112,39 @@ export default function App() {
         {tab === 'points' && <PointsCalculator />}
 
         {tab === 'settings' && (
-          <div className="space-y-4">
-            <h2 className="font-display text-lg font-medium text-foreground">Your Cards</h2>
-            <p className="text-sm text-muted-foreground">Update which Amex cards you hold.</p>
-            <CardSelector onSelect={setCards} />
+          <div className="space-y-6">
+            <div>
+              <h2 className="font-display text-lg font-medium text-foreground mb-1">Card Start Dates</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Set the month you opened each card. The annual summary counts credits from this date.
+              </p>
+              <div className="space-y-3">
+                {state.cards.map((card) => (
+                  <div key={card} className="flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-3">
+                    <span className={cn(
+                      'text-sm font-medium min-w-[80px]',
+                      card === 'platinum' ? 'text-slate-300' : 'text-yellow-400'
+                    )}>
+                      {card.charAt(0).toUpperCase() + card.slice(1)}
+                      <span className="block text-xs text-muted-foreground font-normal">${BENEFITS[card].annualFee}/yr</span>
+                    </span>
+                    <input
+                      type="month"
+                      value={state.cardStartDates?.[card] ?? ''}
+                      onChange={(e) => setCardStartDate(card, e.target.value)}
+                      className="flex-1 bg-secondary/40 border border-border rounded px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-gold/60 [color-scheme:dark]"
+                      max={`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-border pt-6">
+              <h2 className="font-display text-lg font-medium text-foreground mb-1">Your Cards</h2>
+              <p className="text-sm text-muted-foreground mb-4">Update which Amex cards you hold.</p>
+              <CardSelector onSelect={setCards} />
+            </div>
           </div>
         )}
       </main>

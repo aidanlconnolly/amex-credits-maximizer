@@ -22,9 +22,10 @@ const KEY_CREDITS = [
     label: 'Dining',
     items: [
       { card: 'Platinum', benefit: '$20/mo at Grubhub, Shake Shack & more' },
+      { card: 'Platinum', benefit: '$100/quarter Resy credit ($400/year)' },
       { card: 'Gold', benefit: '$10/mo at Grubhub, Shake Shack & more' },
       { card: 'Gold', benefit: '$7/mo at Dunkin\'' },
-      { card: 'Gold', benefit: '$50 semi-annual Resy credit' },
+      { card: 'Gold', benefit: '$50 semi-annual Resy credit ($100/year)' },
     ],
   },
   {
@@ -38,6 +39,7 @@ const KEY_CREDITS = [
     label: 'Lifestyle & Fitness',
     items: [
       { card: 'Platinum', benefit: '$300 Equinox / SoulCycle credit' },
+      { card: 'Platinum', benefit: '$75/quarter lululemon credit ($300/year)' },
       { card: 'Platinum', benefit: '$155 Walmart+ membership' },
       { card: 'Platinum', benefit: '$50 semi-annual Saks Fifth Avenue' },
     ],

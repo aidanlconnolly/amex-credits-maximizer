@@ -10,11 +10,12 @@ interface Props {
   now: Date
   onToggle: (card: CardType, creditId: string, used: boolean) => void
   onEnroll: (creditId: string, enrolled: boolean) => void
+  onTogglePeriod: (card: CardType, creditId: string, periodKey: string, used: boolean) => void
+  onMarkAllPeriods: (card: CardType, creditId: string, periodKeys: string[], used: boolean) => void
   roi: ReturnType<typeof import('@/lib/credits').computeROI>
 }
 
-export function Dashboard({ cards, state, now, onToggle, onEnroll, roi }: Props) {
-  // Collect all enrollment-required credits across active cards
+export function Dashboard({ cards, state, now, onToggle, onEnroll, onTogglePeriod, onMarkAllPeriods, roi }: Props) {
   const enrollmentCredits = cards.flatMap((card) =>
     BENEFITS[card].credits.filter((c) => c.requiresEnrollment)
   )
@@ -37,6 +38,7 @@ export function Dashboard({ cards, state, now, onToggle, onEnroll, roi }: Props)
         const quarterly = credits.filter((c) => c.resetPeriod === 'quarterly')
         const semiannual = credits.filter((c) => c.resetPeriod === 'semiannual')
         const annual = credits.filter((c) => c.resetPeriod === 'annual')
+        const cardStartDate = state.cardStartDates?.[card]
 
         return (
           <div key={card}>
@@ -58,6 +60,9 @@ export function Dashboard({ cards, state, now, onToggle, onEnroll, roi }: Props)
                   now={now}
                   onToggle={onToggle}
                   onEnroll={(id) => onEnroll(id, true)}
+                  cardStartDate={cardStartDate}
+                  onTogglePeriod={onTogglePeriod}
+                  onMarkAllPeriods={onMarkAllPeriods}
                 />
               )}
               {quarterly.length > 0 && (

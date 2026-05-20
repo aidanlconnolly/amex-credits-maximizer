@@ -29,6 +29,7 @@ export interface StoredState {
   creditStatus: Record<string, Record<string, CreditUsageEntry>>
   enrolled: Record<string, boolean>
   onboarded: boolean
+  cardStartDates?: Record<string, string>  // CardType → 'YYYY-MM'
 }
 
 export interface CreditStatus {
@@ -41,11 +42,7 @@ export interface CreditStatus {
 
 export interface ROISummary {
   annualFee: number
-  usedYTD: number
-  remainingThisYear: number
+  usedSinceStart: number
   totalPossible: number
   netPosition: number
-  leavingOnTable: number
-  monthlyUsed: number
-  monthlyTotal: number
 }

@@ -4,6 +4,8 @@ import {
   endOfYear,
   differenceInCalendarDays,
   startOfYear,
+  startOfMonth,
+  addMonths,
 } from 'date-fns'
 import type { Credit, CreditStatus, ROISummary, StoredState, CardType } from '@/types'
 import { BENEFITS } from '@/data/benefits'
@@ -74,6 +76,35 @@ export function isCreditAccessible(credit: Credit, state: StoredState): boolean 
   return state.enrolled[credit.id] === true
 }
 
+/** Returns all period keys for a credit from startDate up to and including the current period at `now`. */
+export function getPeriodsFromStartToNow(credit: Credit, startDate: Date, now: Date): string[] {
+  if (credit.resetPeriod === 'monthly') {
+    const periods: string[] = []
+    let d = startOfMonth(startDate)
+    const current = startOfMonth(now)
+    while (d <= current) {
+      periods.push(format(d, 'yyyy-MM'))
+      d = addMonths(d, 1)
+    }
+    return periods
+  }
+  if (credit.resetPeriod === 'quarterly') {
+    const periods: string[] = []
+    let year = startDate.getFullYear()
+    let q = Math.floor(startDate.getMonth() / 3) + 1
+    const nowYear = now.getFullYear()
+    const nowQ = Math.floor(now.getMonth() / 3) + 1
+    while (year < nowYear || (year === nowYear && q <= nowQ)) {
+      periods.push(`${year}-Q${q}`)
+      q++
+      if (q > 4) { q = 1; year++ }
+    }
+    return periods
+  }
+  // annual / semiannual: just current period
+  return [getPeriodKey(credit, now)]
+}
+
 export function getNudgeCredits(cards: CardType[], state: StoredState, date: Date) {
   const results: Array<{ credit: Credit; status: CreditStatus }> = []
   for (const card of cards) {
@@ -89,57 +120,32 @@ export function getNudgeCredits(cards: CardType[], state: StoredState, date: Dat
 
 export function computeROI(cards: CardType[], state: StoredState, date: Date): ROISummary {
   const annualFee = cards.reduce((sum, c) => sum + BENEFITS[c].annualFee, 0)
-  const yearStart = startOfYear(date)
 
-  let usedYTD = 0
+  let usedSinceStart = 0
   let totalPossible = 0
-  let leavingOnTable = 0
 
   for (const card of cards) {
+    const startStr = state.cardStartDates?.[card]
+    const startDate = startStr
+      ? new Date(parseInt(startStr.slice(0, 4)), parseInt(startStr.slice(5, 7)) - 1, 1)
+      : startOfYear(date)
+
     for (const credit of BENEFITS[card].credits) {
-      const yearlyValue = getYearlyValue(credit, date)
-      totalPossible += yearlyValue
+      totalPossible += getYearlyValue(credit, date)
 
-      // Count used credits this year across all periods
-      const usedThisPeriod = isUsedThisPeriod(credit, state, date)
-      const effectiveAmount = getEffectiveAmount(credit, date)
-
-      if (usedThisPeriod) {
-        usedYTD += effectiveAmount
-      }
-
-      // Leaving on table = unused credits where period has already passed or current
-      const periodEnd = getPeriodEnd(credit, date)
-      if (!usedThisPeriod && periodEnd >= yearStart) {
-        leavingOnTable += effectiveAmount
-      }
-    }
-  }
-
-  const remainingThisYear = totalPossible - usedYTD
-  const netPosition = totalPossible - annualFee
-
-  let monthlyUsed = 0
-  let monthlyTotal = 0
-  for (const card of cards) {
-    for (const credit of BENEFITS[card].credits) {
-      if (credit.resetPeriod === 'monthly') {
-        const effectiveAmount = getEffectiveAmount(credit, date)
-        monthlyTotal += effectiveAmount
-        const periodKey = getPeriodKey(credit, date)
+      const periods = getPeriodsFromStartToNow(credit, startDate, date)
+      for (const periodKey of periods) {
         if (state.creditStatus[periodKey]?.[credit.id]?.used) {
-          monthlyUsed += effectiveAmount
+          // For Uber Cash December special: detect Dec from periodKey
+          const isDecUber = credit.id === 'uber_cash' && periodKey.endsWith('-12')
+          usedSinceStart += isDecUber ? 35 : credit.amount
         }
       }
     }
   }
 
-  return { annualFee, usedYTD, remainingThisYear, totalPossible, netPosition, leavingOnTable, monthlyUsed, monthlyTotal }
-}
-
-function isUsedThisPeriod(credit: Credit, state: StoredState, date: Date): boolean {
-  const periodKey = getPeriodKey(credit, date)
-  return state.creditStatus[periodKey]?.[credit.id]?.used ?? false
+  const netPosition = totalPossible - annualFee
+  return { annualFee, usedSinceStart, totalPossible, netPosition }
 }
 
 function getYearlyValue(credit: Credit, _date: Date): number {
