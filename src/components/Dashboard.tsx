@@ -76,6 +76,9 @@ export function Dashboard({ cards, state, now, onToggle, onEnroll, onTogglePerio
                   now={now}
                   onToggle={onToggle}
                   onEnroll={(id) => onEnroll(id, true)}
+                  cardStartDate={cardStartDate}
+                  onTogglePeriod={onTogglePeriod}
+                  onMarkAllPeriods={onMarkAllPeriods}
                 />
               )}
               {semiannual.length > 0 && (
@@ -87,6 +90,9 @@ export function Dashboard({ cards, state, now, onToggle, onEnroll, onTogglePerio
                   now={now}
                   onToggle={onToggle}
                   onEnroll={(id) => onEnroll(id, true)}
+                  cardStartDate={cardStartDate}
+                  onTogglePeriod={onTogglePeriod}
+                  onMarkAllPeriods={onMarkAllPeriods}
                 />
               )}
               {annual.length > 0 && (

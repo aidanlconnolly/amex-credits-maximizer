@@ -1,8 +1,7 @@
 import type { ROISummary } from '@/types'
 import { DollarSign } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
-// ~2.0× blended MR earn (4× Gold dining/groceries, 5× Platinum flights, 1× everything else)
+// ~2.0× blended MR earn (4× Gold dining/groceries, 5× Platinum flights, 1× other)
 // × 1.8¢/pt conservative transfer-partner value
 const BLENDED_RATE = 2.0
 const POINT_VALUE_CENTS = 1.8
@@ -17,11 +16,12 @@ export function ROICalculator({ roi, totalSpend, onSpendChange }: Props) {
   const { annualFee, usedSinceStart } = roi
 
   const estimatedPoints = Math.round(totalSpend * BLENDED_RATE)
-  const estimatedValue = Math.round(totalSpend * BLENDED_RATE * (POINT_VALUE_CENTS / 100))
+  const estimatedPointsValue = Math.round(totalSpend * BLENDED_RATE * (POINT_VALUE_CENTS / 100))
+  const totalEstSavings = usedSinceStart + estimatedPointsValue
 
   return (
     <div className="rounded-xl border border-border bg-card p-5 space-y-4">
-      {/* Annual summary */}
+      {/* Top stats */}
       <div>
         <div className="flex items-center gap-2 mb-3">
           <DollarSign size={15} className="text-gold" />
@@ -30,8 +30,8 @@ export function ROICalculator({ roi, totalSpend, onSpendChange }: Props) {
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-xs text-muted-foreground mb-0.5">Used Since Start</p>
-            <p className="text-2xl font-semibold font-display text-gold">${usedSinceStart.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground mb-0.5">Total Est. Savings</p>
+            <p className="text-2xl font-semibold font-display text-gold">${totalEstSavings.toLocaleString()}</p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-0.5">Card Fees</p>
@@ -40,11 +40,30 @@ export function ROICalculator({ roi, totalSpend, onSpendChange }: Props) {
         </div>
       </div>
 
-      {/* Spend + points estimate */}
-      <div className="border-t border-border pt-4">
-        <div className="flex items-center gap-3 mb-2">
+      {/* Breakdown + spend input */}
+      <div className="border-t border-border pt-4 space-y-3">
+        {/* Breakdown row */}
+        <div className="flex items-center gap-2 text-sm flex-wrap">
+          <span className="text-muted-foreground">Credits</span>
+          <span className="text-foreground font-medium">${usedSinceStart.toLocaleString()}</span>
+          {estimatedPointsValue > 0 && (
+            <>
+              <span className="text-muted-foreground/50">+</span>
+              <span className="text-muted-foreground">Points est.</span>
+              <span className="text-foreground font-medium">
+                ${estimatedPointsValue.toLocaleString()}
+                <span className="text-muted-foreground font-normal text-xs ml-1">
+                  (~{estimatedPoints.toLocaleString()} MR)
+                </span>
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* Spend input */}
+        <div className="flex items-center gap-3">
           <label className="text-xs text-muted-foreground whitespace-nowrap">Spend since start</label>
-          <div className="relative flex-1 max-w-[160px]">
+          <div className="relative max-w-[160px]">
             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
             <input
               type="number"
@@ -56,19 +75,7 @@ export function ROICalculator({ roi, totalSpend, onSpendChange }: Props) {
             />
           </div>
         </div>
-        {totalSpend > 0 ? (
-          <p className="text-sm text-foreground">
-            <span className="text-gold font-semibold">~{estimatedPoints.toLocaleString()} MR pts</span>
-            <span className="text-muted-foreground"> ≈ </span>
-            <span className={cn('font-semibold', estimatedValue > annualFee ? 'text-emerald-400' : 'text-foreground')}>
-              ${estimatedValue.toLocaleString()}
-            </span>
-            <span className="text-muted-foreground text-xs ml-2">est. value</span>
-          </p>
-        ) : (
-          <p className="text-xs text-muted-foreground">Enter total spend to estimate MR points earned</p>
-        )}
-        <p className="text-xs text-muted-foreground/60 mt-1">
+        <p className="text-xs text-muted-foreground/60">
           {BLENDED_RATE}× blended (4× dining, 5× flights, 1× other) · {POINT_VALUE_CENTS}¢/pt transfer value
         </p>
       </div>
