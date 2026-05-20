@@ -1,6 +1,5 @@
-import { format, startOfMonth, addMonths } from 'date-fns'
 import type { Credit, StoredState, CardType } from '@/types'
-import { getCreditStatus, isCreditAccessible } from '@/lib/credits'
+import { getCreditStatus, isCreditAccessible, getPastPeriodLabels } from '@/lib/credits'
 import { CreditRow } from './CreditRow'
 
 interface Props {
@@ -14,25 +13,6 @@ interface Props {
   cardStartDate?: string  // 'YYYY-MM'
   onTogglePeriod?: (card: CardType, creditId: string, periodKey: string, used: boolean) => void
   onMarkAllPeriods?: (card: CardType, creditId: string, periodKeys: string[], used: boolean) => void
-}
-
-function getPastMonths(cardStartDate: string, now: Date): Array<{ key: string; label: string }> {
-  const [y, m] = cardStartDate.split('-').map(Number)
-  const start = new Date(y, m - 1, 1)
-  const current = startOfMonth(now)
-  const nowYear = now.getFullYear()
-
-  const months: Array<{ key: string; label: string }> = []
-  let d = start
-  while (d < current) {
-    const key = format(d, 'yyyy-MM')
-    const yr = d.getFullYear()
-    const mon = format(d, 'MMM')
-    const label = yr !== nowYear ? `${mon} '${String(yr).slice(2)}` : mon
-    months.push({ key, label })
-    d = addMonths(d, 1)
-  }
-  return months
 }
 
 export function CreditSection({
@@ -56,8 +36,6 @@ export function CreditSection({
 
   const usedCount = credits.filter((c) => getCreditStatus(c, state, now).used).length
 
-  const pastMonths = cardStartDate ? getPastMonths(cardStartDate, now) : []
-
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
@@ -71,17 +49,26 @@ export function CreditSection({
           const status = getCreditStatus(credit, state, now)
           const accessible = isCreditAccessible(credit, state)
 
-          let monthHistory: React.ComponentProps<typeof CreditRow>['monthHistory'] = undefined
-          if (credit.resetPeriod === 'monthly' && pastMonths.length > 0 && onTogglePeriod && onMarkAllPeriods) {
-            const usage: Record<string, boolean> = {}
-            for (const { key } of pastMonths) {
-              usage[key] = state.creditStatus[key]?.[credit.id]?.used ?? false
-            }
-            monthHistory = {
-              periods: pastMonths,
-              usage,
-              onToggle: (key, used) => onTogglePeriod(card, credit.id, key, used),
-              onMarkAll: () => onMarkAllPeriods(card, credit.id, pastMonths.map((p) => p.key), true),
+          let periodHistory: React.ComponentProps<typeof CreditRow>['periodHistory'] = undefined
+          if (
+            credit.resetPeriod !== 'annual' &&
+            cardStartDate &&
+            onTogglePeriod &&
+            onMarkAllPeriods
+          ) {
+            const pastPeriods = getPastPeriodLabels(credit, cardStartDate, now)
+            if (pastPeriods.length > 0) {
+              const usage: Record<string, boolean> = {}
+              for (const { key } of pastPeriods) {
+                usage[key] = state.creditStatus[key]?.[credit.id]?.used ?? false
+              }
+              periodHistory = {
+                periods: pastPeriods,
+                usage,
+                onToggle: (key, used) => onTogglePeriod(card, credit.id, key, used),
+                onMarkAll: () =>
+                  onMarkAllPeriods(card, credit.id, pastPeriods.map((p) => p.key), true),
+              }
             }
           }
 
@@ -93,7 +80,7 @@ export function CreditSection({
               accessible={accessible}
               onToggle={() => onToggle(card, credit.id, !status.used)}
               onEnroll={credit.requiresEnrollment ? () => onEnroll(credit.id) : undefined}
-              monthHistory={monthHistory}
+              periodHistory={periodHistory}
             />
           )
         })}

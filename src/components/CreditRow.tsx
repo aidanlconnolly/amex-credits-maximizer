@@ -2,7 +2,7 @@ import { Check, Clock, Lock } from 'lucide-react'
 import type { Credit, CreditStatus } from '@/types'
 import { cn } from '@/lib/utils'
 
-interface MonthHistory {
+interface PeriodHistory {
   periods: Array<{ key: string; label: string }>  // past months (excludes current)
   usage: Record<string, boolean>
   onToggle: (periodKey: string, used: boolean) => void
@@ -15,7 +15,7 @@ interface Props {
   accessible: boolean
   onToggle: () => void
   onEnroll?: () => void
-  monthHistory?: MonthHistory
+  periodHistory?: PeriodHistory
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -28,10 +28,10 @@ const CATEGORY_COLORS: Record<string, string> = {
   shopping: 'bg-pink-500/15 text-pink-300',
 }
 
-export function CreditRow({ credit, status, accessible, onToggle, onEnroll, monthHistory }: Props) {
+export function CreditRow({ credit, status, accessible, onToggle, onEnroll, periodHistory }: Props) {
   const { used, daysLeft, colorClass, effectiveAmount } = status
   const locked = !accessible
-  const hasPastMonths = monthHistory && monthHistory.periods.length > 0
+  const hasPastMonths = periodHistory && periodHistory.periods.length > 0
 
   return (
     <div
@@ -109,12 +109,12 @@ export function CreditRow({ credit, status, accessible, onToggle, onEnroll, mont
       {hasPastMonths && (
         <div className="px-4 pb-2.5 flex items-center gap-1.5 flex-wrap border-t border-border/40 pt-2">
           <span className="text-xs text-muted-foreground mr-0.5">Past:</span>
-          {monthHistory!.periods.map(({ key, label }) => {
-            const isUsed = monthHistory!.usage[key] ?? false
+          {periodHistory!.periods.map(({ key, label }) => {
+            const isUsed = periodHistory!.usage[key] ?? false
             return (
               <button
                 key={key}
-                onClick={() => monthHistory!.onToggle(key, !isUsed)}
+                onClick={() => periodHistory!.onToggle(key, !isUsed)}
                 className={cn(
                   'text-xs px-1.5 py-0.5 rounded font-medium transition-colors',
                   isUsed
@@ -128,7 +128,7 @@ export function CreditRow({ credit, status, accessible, onToggle, onEnroll, mont
             )
           })}
           <button
-            onClick={monthHistory!.onMarkAll}
+            onClick={periodHistory!.onMarkAll}
             className="text-xs px-1.5 py-0.5 rounded font-medium bg-secondary/40 text-muted-foreground hover:text-foreground transition-colors ml-0.5"
             title="Mark all past months as used"
           >

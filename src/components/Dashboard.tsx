@@ -13,16 +13,18 @@ interface Props {
   onTogglePeriod: (card: CardType, creditId: string, periodKey: string, used: boolean) => void
   onMarkAllPeriods: (card: CardType, creditId: string, periodKeys: string[], used: boolean) => void
   roi: ReturnType<typeof import('@/lib/credits').computeROI>
+  totalSpend: number
+  onSpendChange: (n: number) => void
 }
 
-export function Dashboard({ cards, state, now, onToggle, onEnroll, onTogglePeriod, onMarkAllPeriods, roi }: Props) {
+export function Dashboard({ cards, state, now, onToggle, onEnroll, onTogglePeriod, onMarkAllPeriods, roi, totalSpend, onSpendChange }: Props) {
   const enrollmentCredits = cards.flatMap((card) =>
     BENEFITS[card].credits.filter((c) => c.requiresEnrollment)
   )
 
   return (
     <div className="space-y-6">
-      <ROICalculator roi={roi} />
+      <ROICalculator roi={roi} totalSpend={totalSpend} onSpendChange={onSpendChange} />
 
       {enrollmentCredits.length > 0 && (
         <EnrollmentAlert

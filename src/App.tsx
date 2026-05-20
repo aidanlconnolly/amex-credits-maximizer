@@ -23,6 +23,7 @@ export default function App() {
     state,
     now,
     setCards,
+    setTotalSpend,
     setCardStartDate,
     markUsed,
     unmarkUsed,
@@ -99,6 +100,8 @@ export default function App() {
             onTogglePeriod={markUsedForPeriod}
             onMarkAllPeriods={markAllPeriods}
             roi={roiSummary}
+            totalSpend={state.totalSpend ?? 0}
+            onSpendChange={setTotalSpend}
           />
         )}
 

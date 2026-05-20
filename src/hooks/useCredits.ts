@@ -63,6 +63,11 @@ export function useCredits() {
     [state, update, now]
   )
 
+  const setTotalSpend = useCallback(
+    (amount: number) => update({ ...state, totalSpend: amount }),
+    [state, update]
+  )
+
   const setCardStartDate = useCallback(
     (card: CardType, yearMonth: string) => {
       update({
@@ -132,6 +137,7 @@ export function useCredits() {
     state,
     now,
     setCards,
+    setTotalSpend,
     setCardStartDate,
     markUsed,
     unmarkUsed,

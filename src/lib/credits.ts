@@ -7,7 +7,7 @@ import {
   startOfMonth,
   addMonths,
 } from 'date-fns'
-import type { Credit, CreditStatus, ROISummary, StoredState, CardType } from '@/types'
+import type { Credit, CreditStatus, ResetPeriod, ROISummary, StoredState, CardType } from '@/types'
 import { BENEFITS } from '@/data/benefits'
 
 function getQuarter(date: Date): string {
@@ -27,7 +27,6 @@ export function getPeriodEnd(credit: Credit, date: Date): Date {
   if (credit.resetPeriod === 'monthly') return endOfMonth(date)
   if (credit.resetPeriod === 'quarterly') {
     const q = Math.floor(date.getMonth() / 3)
-    // Last day of the quarter's last month
     const lastMonthOfQ = q * 3 + 2
     return new Date(date.getFullYear(), lastMonthOfQ + 1, 0, 23, 59, 59)
   }
@@ -101,8 +100,57 @@ export function getPeriodsFromStartToNow(credit: Credit, startDate: Date, now: D
     }
     return periods
   }
-  // annual / semiannual: just current period
+  if (credit.resetPeriod === 'semiannual') {
+    const creditHalf = credit.period ?? (now.getMonth() < 6 ? 'H1' : 'H2')
+    const currentHalf = now.getMonth() < 6 ? 'H1' : 'H2'
+    const currentYear = now.getFullYear()
+    const startYear = startDate.getFullYear()
+    const startHalf = startDate.getMonth() < 6 ? 'H1' : 'H2'
+    const periods: string[] = []
+    for (let y = startYear; y <= currentYear; y++) {
+      // Skip if card started in H2 but this credit is H1 — that year's H1 predates the card
+      if (y === startYear && creditHalf === 'H1' && startHalf === 'H2') continue
+      // Skip H2 of current year if we haven't reached July yet
+      if (y === currentYear && creditHalf === 'H2' && currentHalf === 'H1') continue
+      periods.push(`${y}-${creditHalf}`)
+    }
+    return periods
+  }
+  // annual: just current period
   return [getPeriodKey(credit, now)]
+}
+
+function formatPeriodLabel(key: string, resetPeriod: ResetPeriod, currentYear: number): string {
+  if (resetPeriod === 'monthly') {
+    const [yr, mo] = key.split('-').map(Number)
+    const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    return yr !== currentYear ? `${MON[mo - 1]} '${String(yr).slice(2)}` : MON[mo - 1]
+  }
+  if (resetPeriod === 'quarterly') {
+    const [yr, q] = key.split('-')
+    return parseInt(yr) !== currentYear ? `${q} '${yr.slice(2)}` : q
+  }
+  if (resetPeriod === 'semiannual') {
+    const [yr, h] = key.split('-')
+    return parseInt(yr) !== currentYear ? `${h} '${yr.slice(2)}` : h
+  }
+  return key
+}
+
+/** Returns past period labels for a credit (excludes current period — handled by main toggle). */
+export function getPastPeriodLabels(
+  credit: Credit,
+  cardStartDate: string,
+  now: Date
+): Array<{ key: string; label: string }> {
+  const [y, m] = cardStartDate.split('-').map(Number)
+  const startDate = new Date(y, m - 1, 1)
+  const allPeriods = getPeriodsFromStartToNow(credit, startDate, now)
+  const currentKey = getPeriodKey(credit, now)
+  const currentYear = now.getFullYear()
+  return allPeriods
+    .filter((key) => key !== currentKey)
+    .map((key) => ({ key, label: formatPeriodLabel(key, credit.resetPeriod, currentYear) }))
 }
 
 export function getNudgeCredits(cards: CardType[], state: StoredState, date: Date) {
@@ -120,9 +168,7 @@ export function getNudgeCredits(cards: CardType[], state: StoredState, date: Dat
 
 export function computeROI(cards: CardType[], state: StoredState, date: Date): ROISummary {
   const annualFee = cards.reduce((sum, c) => sum + BENEFITS[c].annualFee, 0)
-
   let usedSinceStart = 0
-  let totalPossible = 0
 
   for (const card of cards) {
     const startStr = state.cardStartDates?.[card]
@@ -131,12 +177,9 @@ export function computeROI(cards: CardType[], state: StoredState, date: Date): R
       : startOfYear(date)
 
     for (const credit of BENEFITS[card].credits) {
-      totalPossible += getYearlyValue(credit, date)
-
       const periods = getPeriodsFromStartToNow(credit, startDate, date)
       for (const periodKey of periods) {
         if (state.creditStatus[periodKey]?.[credit.id]?.used) {
-          // For Uber Cash December special: detect Dec from periodKey
           const isDecUber = credit.id === 'uber_cash' && periodKey.endsWith('-12')
           usedSinceStart += isDecUber ? 35 : credit.amount
         }
@@ -144,18 +187,5 @@ export function computeROI(cards: CardType[], state: StoredState, date: Date): R
     }
   }
 
-  const netPosition = totalPossible - annualFee
-  return { annualFee, usedSinceStart, totalPossible, netPosition }
-}
-
-function getYearlyValue(credit: Credit, _date: Date): number {
-  if (credit.resetPeriod === 'monthly') {
-    // Special: December uber_cash is $35, rest $15 → avg ~$15.83
-    if (credit.id === 'uber_cash') return credit.amount * 11 + 35
-    return credit.amount * 12
-  }
-  if (credit.resetPeriod === 'quarterly') return credit.amount * 4
-  if (credit.resetPeriod === 'annual') return credit.amount
-  // semiannual: only one half applies per H1/H2 credit
-  return credit.amount
+  return { annualFee, usedSinceStart }
 }

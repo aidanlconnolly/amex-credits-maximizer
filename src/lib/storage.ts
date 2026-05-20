@@ -8,6 +8,7 @@ const DEFAULT_STATE: StoredState = {
   enrolled: {},
   onboarded: false,
   cardStartDates: {},
+  totalSpend: 0,
 }
 
 export function loadState(): StoredState {
