@@ -2,7 +2,7 @@ import type { CardBenefits, CardType } from '@/types'
 
 export const BENEFITS: Record<CardType, CardBenefits> = {
   platinum: {
-    annualFee: 695,
+    annualFee: 895,
     credits: [
       {
         id: 'uber_cash',
@@ -120,7 +120,7 @@ export const BENEFITS: Record<CardType, CardBenefits> = {
     ],
   },
   gold: {
-    annualFee: 250,
+    annualFee: 325,
     credits: [
       {
         id: 'dining_gold',
