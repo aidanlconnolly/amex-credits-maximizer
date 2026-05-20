@@ -18,7 +18,7 @@ export const BENEFITS: Record<CardType, CardBenefits> = {
         amount: 20,
         resetPeriod: 'monthly',
         category: 'dining',
-        eligibleMerchants: ['Grubhub', 'The Cheesecake Factory', 'Goldbelly', 'Wine.com', 'Milk Bar', 'Shake Shack'],
+        note: 'Food delivery, casual dining, and specialty food & wine retailers. Eligible: Grubhub, The Cheesecake Factory, Goldbelly, Wine.com, Milk Bar, Shake Shack.',
       },
       {
         id: 'digital_entertainment',
@@ -78,6 +78,22 @@ export const BENEFITS: Record<CardType, CardBenefits> = {
         note: 'One Equinox/SoulCycle credit per year — equinox OR soulcycle, not both.',
       },
       {
+        id: 'lululemon',
+        label: 'lululemon Credit',
+        amount: 75,
+        resetPeriod: 'quarterly',
+        category: 'fitness',
+        note: 'lululemon apparel, accessories, and lululemon Studio membership.',
+      },
+      {
+        id: 'global_entry',
+        label: 'Global Entry / TSA PreCheck',
+        amount: 100,
+        resetPeriod: 'annual',
+        category: 'travel',
+        note: '$100 for Global Entry (includes TSA PreCheck) or $85 for TSA PreCheck alone. Renews every 4.5 years.',
+      },
+      {
         id: 'saks_h1',
         label: 'Saks Fifth Avenue (Jan–Jun)',
         amount: 50,
@@ -104,8 +120,7 @@ export const BENEFITS: Record<CardType, CardBenefits> = {
         amount: 10,
         resetPeriod: 'monthly',
         category: 'dining',
-        eligibleMerchants: ['Grubhub', 'The Cheesecake Factory', 'Goldbelly', 'Wine.com', 'Milk Bar', 'Shake Shack'],
-        note: '$120/year',
+        note: 'Food delivery, casual dining, and specialty food & wine retailers. Eligible: Grubhub, The Cheesecake Factory, Goldbelly, Wine.com, Milk Bar, Shake Shack. ($120/year)',
       },
       {
         id: 'uber_cash_gold',

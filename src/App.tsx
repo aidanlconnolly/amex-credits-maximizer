@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useCredits } from '@/hooks/useCredits'
 import { CardSelector } from '@/components/CardSelector'
-import { NudgeBar } from '@/components/NudgeBar'
 import { Dashboard } from '@/components/Dashboard'
 import { CardTradeoffs } from '@/components/CardTradeoffs'
 import { CrossCardOptimizer } from '@/components/CrossCardOptimizer'
@@ -19,7 +18,7 @@ const TABS: { id: Tab; label: string }[] = [
 ]
 
 export default function App() {
-  const { state, now, setCards, markUsed, unmarkUsed, setEnrolled, nudgeCredits, roiSummary } = useCredits()
+  const { state, now, setCards, markUsed, unmarkUsed, setEnrolled, roiSummary } = useCredits()
   const [tab, setTab] = useState<Tab>('credits')
 
   if (!state.onboarded) {
@@ -33,8 +32,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-background">
-      <NudgeBar nudgeCredits={nudgeCredits} now={now} />
-
       {/* Header */}
       <header className="border-b border-border px-4 md:px-8 py-5">
         <div className="max-w-3xl mx-auto flex items-baseline justify-between">

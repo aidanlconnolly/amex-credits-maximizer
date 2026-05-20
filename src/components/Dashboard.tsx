@@ -34,6 +34,7 @@ export function Dashboard({ cards, state, now, onToggle, onEnroll, roi }: Props)
       {cards.map((card) => {
         const { credits } = BENEFITS[card]
         const monthly = credits.filter((c) => c.resetPeriod === 'monthly')
+        const quarterly = credits.filter((c) => c.resetPeriod === 'quarterly')
         const semiannual = credits.filter((c) => c.resetPeriod === 'semiannual')
         const annual = credits.filter((c) => c.resetPeriod === 'annual')
 
@@ -52,6 +53,17 @@ export function Dashboard({ cards, state, now, onToggle, onEnroll, roi }: Props)
                 <CreditSection
                   title="Monthly"
                   credits={monthly}
+                  card={card}
+                  state={state}
+                  now={now}
+                  onToggle={onToggle}
+                  onEnroll={(id) => onEnroll(id, true)}
+                />
+              )}
+              {quarterly.length > 0 && (
+                <CreditSection
+                  title="Quarterly"
+                  credits={quarterly}
                   card={card}
                   state={state}
                   now={now}

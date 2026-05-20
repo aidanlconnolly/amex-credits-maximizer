@@ -8,8 +8,13 @@ import {
 import type { Credit, CreditStatus, ROISummary, StoredState, CardType } from '@/types'
 import { BENEFITS } from '@/data/benefits'
 
+function getQuarter(date: Date): string {
+  return `Q${Math.floor(date.getMonth() / 3) + 1}`
+}
+
 export function getPeriodKey(credit: Credit, date: Date): string {
   if (credit.resetPeriod === 'monthly') return format(date, 'yyyy-MM')
+  if (credit.resetPeriod === 'quarterly') return `${date.getFullYear()}-${getQuarter(date)}`
   if (credit.resetPeriod === 'annual') return `${date.getFullYear()}-annual`
   // semiannual — use credit's period field if set (for fixed H1/H2 credits), else derive
   const half = credit.period ?? (date.getMonth() < 6 ? 'H1' : 'H2')
@@ -18,6 +23,12 @@ export function getPeriodKey(credit: Credit, date: Date): string {
 
 export function getPeriodEnd(credit: Credit, date: Date): Date {
   if (credit.resetPeriod === 'monthly') return endOfMonth(date)
+  if (credit.resetPeriod === 'quarterly') {
+    const q = Math.floor(date.getMonth() / 3)
+    // Last day of the quarter's last month
+    const lastMonthOfQ = q * 3 + 2
+    return new Date(date.getFullYear(), lastMonthOfQ + 1, 0, 23, 59, 59)
+  }
   if (credit.resetPeriod === 'annual') return endOfYear(date)
   // semiannual
   const half = credit.period ?? (date.getMonth() < 6 ? 'H1' : 'H2')
@@ -108,7 +119,22 @@ export function computeROI(cards: CardType[], state: StoredState, date: Date): R
   const remainingThisYear = totalPossible - usedYTD
   const netPosition = totalPossible - annualFee
 
-  return { annualFee, usedYTD, remainingThisYear, totalPossible, netPosition, leavingOnTable }
+  let monthlyUsed = 0
+  let monthlyTotal = 0
+  for (const card of cards) {
+    for (const credit of BENEFITS[card].credits) {
+      if (credit.resetPeriod === 'monthly') {
+        const effectiveAmount = getEffectiveAmount(credit, date)
+        monthlyTotal += effectiveAmount
+        const periodKey = getPeriodKey(credit, date)
+        if (state.creditStatus[periodKey]?.[credit.id]?.used) {
+          monthlyUsed += effectiveAmount
+        }
+      }
+    }
+  }
+
+  return { annualFee, usedYTD, remainingThisYear, totalPossible, netPosition, leavingOnTable, monthlyUsed, monthlyTotal }
 }
 
 function isUsedThisPeriod(credit: Credit, state: StoredState, date: Date): boolean {
@@ -122,6 +148,7 @@ function getYearlyValue(credit: Credit, _date: Date): number {
     if (credit.id === 'uber_cash') return credit.amount * 11 + 35
     return credit.amount * 12
   }
+  if (credit.resetPeriod === 'quarterly') return credit.amount * 4
   if (credit.resetPeriod === 'annual') return credit.amount
   // semiannual: only one half applies per H1/H2 credit
   return credit.amount

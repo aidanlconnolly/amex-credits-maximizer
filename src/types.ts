@@ -1,5 +1,5 @@
 export type CardType = 'platinum' | 'gold'
-export type ResetPeriod = 'monthly' | 'annual' | 'semiannual'
+export type ResetPeriod = 'monthly' | 'quarterly' | 'annual' | 'semiannual'
 export type SemiannualHalf = 'H1' | 'H2'
 
 export interface Credit {
@@ -46,4 +46,6 @@ export interface ROISummary {
   totalPossible: number
   netPosition: number
   leavingOnTable: number
+  monthlyUsed: number
+  monthlyTotal: number
 }
