@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { X, AlertTriangle } from 'lucide-react'
-import { format, endOfMonth, differenceInCalendarDays } from 'date-fns'
+import { format, endOfMonth } from 'date-fns'
 import type { Credit, CreditStatus } from '@/types'
 
 interface Props {

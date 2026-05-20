@@ -116,7 +116,7 @@ function isUsedThisPeriod(credit: Credit, state: StoredState, date: Date): boole
   return state.creditStatus[periodKey]?.[credit.id]?.used ?? false
 }
 
-function getYearlyValue(credit: Credit, date: Date): number {
+function getYearlyValue(credit: Credit, _date: Date): number {
   if (credit.resetPeriod === 'monthly') {
     // Special: December uber_cash is $35, rest $15 → avg ~$15.83
     if (credit.id === 'uber_cash') return credit.amount * 11 + 35
