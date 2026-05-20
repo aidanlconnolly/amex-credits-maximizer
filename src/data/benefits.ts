@@ -1,0 +1,151 @@
+import type { CardBenefits, CardType } from '@/types'
+
+export const BENEFITS: Record<CardType, CardBenefits> = {
+  platinum: {
+    annualFee: 695,
+    credits: [
+      {
+        id: 'uber_cash',
+        label: 'Uber Cash',
+        amount: 15,
+        resetPeriod: 'monthly',
+        category: 'transport',
+        note: 'Use in Uber app. December gets $35.',
+      },
+      {
+        id: 'dining_credit',
+        label: 'Dining Credit',
+        amount: 20,
+        resetPeriod: 'monthly',
+        category: 'dining',
+        eligibleMerchants: ['Grubhub', 'The Cheesecake Factory', 'Goldbelly', 'Wine.com', 'Milk Bar', 'Shake Shack'],
+      },
+      {
+        id: 'digital_entertainment',
+        label: 'Digital Entertainment',
+        amount: 20,
+        resetPeriod: 'monthly',
+        category: 'entertainment',
+        requiresEnrollment: true,
+        eligibleMerchants: ['Disney+', 'Hulu', 'ESPN+', 'Peacock', 'The New York Times', 'SiriusXM'],
+      },
+      {
+        id: 'airline_fee',
+        label: 'Airline Fee Credit',
+        amount: 200,
+        resetPeriod: 'annual',
+        category: 'travel',
+        note: 'Must select one airline. Covers fees, not tickets.',
+      },
+      {
+        id: 'hotel_credit',
+        label: 'Fine Hotels + Resorts Credit',
+        amount: 200,
+        resetPeriod: 'annual',
+        category: 'travel',
+        note: 'Must book through Amex Travel.',
+      },
+      {
+        id: 'walmart_plus',
+        label: 'Walmart+ Membership',
+        amount: 155,
+        resetPeriod: 'annual',
+        category: 'lifestyle',
+        note: 'Statement credits cover monthly Walmart+ membership fees.',
+      },
+      {
+        id: 'clear_plus',
+        label: 'CLEAR Plus Credit',
+        amount: 199,
+        resetPeriod: 'annual',
+        category: 'travel',
+      },
+      {
+        id: 'equinox',
+        label: 'Equinox Credit',
+        amount: 300,
+        resetPeriod: 'annual',
+        category: 'fitness',
+        requiresEnrollment: true,
+        note: 'Equinox memberships or Equinox+ app.',
+      },
+      {
+        id: 'soulcycle',
+        label: 'SoulCycle at-Home Bike',
+        amount: 300,
+        resetPeriod: 'annual',
+        category: 'fitness',
+        note: 'One Equinox/SoulCycle credit per year — equinox OR soulcycle, not both.',
+      },
+      {
+        id: 'saks_h1',
+        label: 'Saks Fifth Avenue (Jan–Jun)',
+        amount: 50,
+        resetPeriod: 'semiannual',
+        period: 'H1',
+        category: 'shopping',
+      },
+      {
+        id: 'saks_h2',
+        label: 'Saks Fifth Avenue (Jul–Dec)',
+        amount: 50,
+        resetPeriod: 'semiannual',
+        period: 'H2',
+        category: 'shopping',
+      },
+    ],
+  },
+  gold: {
+    annualFee: 250,
+    credits: [
+      {
+        id: 'dining_gold',
+        label: 'Dining Credit',
+        amount: 10,
+        resetPeriod: 'monthly',
+        category: 'dining',
+        eligibleMerchants: ['Grubhub', 'The Cheesecake Factory', 'Goldbelly', 'Wine.com', 'Milk Bar', 'Shake Shack'],
+        note: '$120/year',
+      },
+      {
+        id: 'uber_cash_gold',
+        label: 'Uber Cash',
+        amount: 10,
+        resetPeriod: 'monthly',
+        category: 'transport',
+        note: '$120/year. Use in Uber app.',
+      },
+      {
+        id: 'dunkin_gold',
+        label: "Dunkin' Credit",
+        amount: 7,
+        resetPeriod: 'monthly',
+        category: 'dining',
+      },
+      {
+        id: 'resy_gold_h1',
+        label: 'Resy Credit (Jan–Jun)',
+        amount: 50,
+        resetPeriod: 'semiannual',
+        period: 'H1',
+        category: 'dining',
+        note: 'Book via Resy at eligible restaurants.',
+      },
+      {
+        id: 'resy_gold_h2',
+        label: 'Resy Credit (Jul–Dec)',
+        amount: 50,
+        resetPeriod: 'semiannual',
+        period: 'H2',
+        category: 'dining',
+        note: 'Book via Resy at eligible restaurants.',
+      },
+    ],
+  },
+}
+
+export const ALL_CREDITS_MAP = new Map(
+  (Object.entries(BENEFITS) as [CardType, CardBenefits][]).flatMap(([card, b]) =>
+    b.credits.map((c) => [c.id, { ...c, card }])
+  )
+)
